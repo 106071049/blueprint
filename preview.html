@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AI 中心 · 開發藍圖 Dashboard（預覽）</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600;700&display=swap" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          brand: { 50:"#eff6ff",100:"#dbeafe",500:"#3b82f6",600:"#2563eb",700:"#1d4ed8",900:"#1e3a8a" },
+        },
+        fontFamily: { sans: ['"Noto Sans TC"', 'system-ui', 'sans-serif'] },
+      },
+    },
+  };
+</script>
+<style>
+  :root { --bg:#0b1020; --panel:#101736; --panel-2:#151d43; --border:#1f2a5c; --text:#e6eaf5; --text-muted:#8892b8; }
+  html,body{background:var(--bg);color:var(--text);min-height:100%;font-family:"Noto Sans TC",system-ui,sans-serif;touch-action:manipulation;-webkit-text-size-adjust:100%;}
+  button,a,input,select,textarea{touch-action:manipulation;}
+  *{-webkit-font-smoothing:antialiased;}
+  .scrollbar-thin::-webkit-scrollbar{width:8px;height:8px;}
+  .scrollbar-thin::-webkit-scrollbar-thumb{background:#2a3875;border-radius:4px;}
+  .scrollbar-thin::-webkit-scrollbar-track{background:transparent;}
+  [data-detail]{display:none;}
+  [data-detail].open{display:table-row;}
+  .filter-btn.active{background:#2563eb;color:#fff;}
+  .tab-btn{transition:all .2s;position:relative;}
+  .tab-btn.active{background:#151d43;color:#fff;border-color:#3b82f6;}
+  .tab-btn.active::after{content:"";position:absolute;bottom:-1px;left:12px;right:12px;height:2px;background:#3b82f6;border-radius:2px;}
+  input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(0.7);}
+  .form-input{background:#0f1530;border:1px solid #1f2a5c;color:#e6eaf5;border-radius:6px;padding:4px 8px;font-size:12px;}
+  .form-input:focus{outline:none;border-color:#3b82f6;box-shadow:0 0 0 2px rgba(59,130,246,.25);}
+  .form-input::placeholder{color:#6b7393;}
+  select.form-input{appearance:auto;}
+  textarea.form-input{min-height:72px;resize:vertical;font-family:inherit;}
+  .btn{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:6px;font-size:12px;border:1px solid #1f2a5c;background:#151d43;color:#e6eaf5;cursor:pointer;transition:all .15s;}
+  .btn:hover{background:#1a2352;border-color:#2a3875;}
+  .btn-primary{background:#2563eb;border-color:#2563eb;}
+  .btn-primary:hover{background:#1d4ed8;border-color:#1d4ed8;}
+  .btn-danger{background:transparent;border-color:transparent;color:#f87171;padding:2px 6px;}
+  .btn-danger:hover{background:#7f1d1d33;color:#fca5a5;}
+  .subtask-row{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;background:#0f1530;border:1px solid #1a234a;}
+  .subtask-row.done{opacity:.55;}
+  .subtask-row.done .subtask-title{text-decoration:line-through;}
+  .check{appearance:none;-webkit-appearance:none;width:16px;height:16px;border:1.5px solid #3b82f6;border-radius:4px;background:transparent;cursor:pointer;position:relative;flex-shrink:0;}
+  .check:checked{background:#10b981;border-color:#10b981;}
+  .check:checked::after{content:"\2713";position:absolute;top:-3px;left:1px;color:#fff;font-size:13px;font-weight:700;}
+  .save-chip{font-size:10px;color:#6ee7b7;padding:1px 6px;border-radius:999px;background:#10b98122;border:1px solid #10b98155;}
+  .custom-badge{display:inline-flex;align-items:center;font-size:10px;padding:2px 6px;border-radius:4px;background:rgba(168,85,247,.15);border:1px solid rgba(168,85,247,.3);color:#d8b4fe;margin-left:6px;}
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(3px);z-index:50;display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto;}
+  .modal-dialog{background:#101736;border:1px solid #1f2a5c;border-radius:12px;width:100%;max-width:720px;max-height:90vh;overflow-y:auto;display:flex;flex-direction:column;}
+  .modal-header{padding:16px 20px;border-bottom:1px solid #1f2a5c;display:flex;align-items:center;justify-content:space-between;}
+  .modal-body{padding:20px;}
+
+  /* iPad & 觸控優化 */
+  @media (pointer: coarse), (max-width: 1024px) {
+    .form-input{min-height:40px;padding:10px 12px;font-size:14px;}
+    .btn{min-height:40px;padding:10px 16px;font-size:13px;}
+    .btn-danger{min-height:34px;padding:6px 10px;font-size:14px;}
+    .check{width:22px;height:22px;border-width:2px;}
+    .check:checked::after{top:-2px;left:3px;font-size:16px;}
+    .subtask-row{padding:10px 12px;gap:10px;}
+    .tab-btn{padding:14px 20px !important;font-size:15px !important;}
+    [data-row] td{padding-top:14px !important;padding-bottom:14px !important;}
+    table{font-size:13px;}
+    .filter-btn{padding:8px 14px !important;font-size:13px !important;}
+  }
+  @media (max-width: 1024px) {
+    thead th:nth-child(1), tbody tr[data-row] td:nth-child(1) {display:none;}
+    thead th:nth-child(4), tbody tr[data-row] td:nth-child(4) {display:none;}
+  }
+  @media (max-width: 820px) {
+    thead th:nth-child(7), tbody tr[data-row] td:nth-child(7) {display:none;}
+  }
+  @media (max-width: 640px) {
+    h1{font-size:1.15rem !important;}
+    thead th:nth-child(8), tbody tr[data-row] td:nth-child(8) {display:none;}
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const STATUS = { DONE: "已完成", IN_PROGRESS: "進行中", PLANNING: "規劃中" };
+const DEPARTMENTS = ["評價部", "管理部"];
+
+const projects = [
+  { id:"val-wendy-optimization", department:"評價部", name:"協助台北、台中同仁優化 Wendy", status:STATUS.DONE, progress:100, frequency:"專案性", startDate:"2026-04-21", endDate:"2026-04-24", aiDirection:"協助台北、台中同仁優化 Wendy 相關功能，提升使用效率。", expectedOutput:"優化後的 Wendy 功能，解決同仁使用痛點。", logic:"現場協助 + 需求盤點 + 功能調整", tag:"同仁協作" },
+  { id:"val-complex-capital-bot", department:"評價部", name:"複雜資本結構機器人", status:STATUS.DONE, progress:100, frequency:"按需要", aiDirection:"自動處理複雜資本結構計算，減少人工作業時間。", expectedOutput:"自動化計算複雜資本結構，輸出報告書所需表格。", logic:"自動化資本結構判斷 → 參數計算 → 報表產出", tag:"機器人" },
+  { id:"val-monte-carlo-simulator", department:"評價部", name:"蒙地卡羅模擬器", status:STATUS.DONE, progress:100, frequency:"按需要", aiDirection:"透過蒙地卡羅模擬進行機率性評價分析。", expectedOutput:"蒙地卡羅模擬計算結果、敵感度分析圖表。", logic:"輸入參數 → 隨機模擬 → 統計分析 → 產出結果", tag:"機器人" },
+  { id:"val-01", department:"評價部", name:"標的公司介紹資料", status:STATUS.PLANNING, progress:0, frequency:"每個案件", aiDirection:"", expectedOutput:"", logic:"", tag:"標的公司" },
+  { id:"val-02", department:"評價部", name:"商工登記資料", status:STATUS.PLANNING, progress:0, frequency:"每個案件", aiDirection:"—", expectedOutput:"—", logic:"—", tag:"標的公司" },
+  { id:"val-03", department:"評價部", name:"DQ 清單回復文字、營運計劃書閱讀", status:STATUS.PLANNING, progress:0, frequency:"每個案件", aiDirection:"", expectedOutput:"", logic:"", tag:"資料閱讀" },
+  { id:"val-04", department:"評價部", name:"標的財務報表 Key in", status:STATUS.PLANNING, progress:0, frequency:"每個案件", aiDirection:"不用再去識別化。", expectedOutput:"", logic:"—", tag:"財務報表" },
+  { id:"val-05", department:"評價部", name:"財產清冊整理計算折舊費用（Excel 來源）", status:STATUS.PLANNING, progress:0, frequency:"每個案件", aiDirection:"", expectedOutput:"", logic:"—", tag:"折舊攝銷" },
+  { id:"val-05b", department:"評價部", name:"財產清冊整理計算折舊費用（PDF 來源）", status:STATUS.PLANNING, progress:0, frequency:"每個案件", aiDirection:"—", expectedOutput:"—", logic:"—", tag:"折舊攝銷" },
+  { id:"val-06", department:"評價部", name:"客戶關係流失率計算", status:STATUS.PLANNING, progress:0, frequency:"每個案件", aiDirection:"客戶名單 Excel，自動計算各期流失率。", expectedOutput:"年度流失率表及計算平均值。", logic:"Excel 簡單處理計算，不含參數判斷屬 input 端。", tag:"客戶分析" },
+  { id:"val-07", department:"評價部", name:"會議記錄", status:STATUS.PLANNING, progress:0, frequency:"每次會議", aiDirection:"錄音檔轉逪字稿及整理摘要，並自動匯入歷史的會議紀錄檔案。", expectedOutput:"問答功能。", logic:"—", tag:"會議" },
+  { id:"val-08", department:"評價部", name:"重要合約基本資料表", status:STATUS.PLANNING, progress:0, frequency:"按需要", aiDirection:"請未來巢提供 XERNO 適合的 Prompt。", expectedOutput:"", logic:"定義現有欄位 → AI 抓取 → 後續擴充。", tag:"合約" },
+  { id:"val-09", department:"評價部", name:"特別股條款", status:STATUS.PLANNING, progress:0, frequency:"按需要", aiDirection:"請未來巢提供 XERNO 適合的 Prompt。", expectedOutput:"", logic:"定義現有欄位 → AI 抓取 → 後續擴充。", tag:"合約" },
+  { id:"val-10", department:"評價部", name:"風險評估（法律/帳務/環保/營運）", status:STATUS.PLANNING, progress:0, frequency:"每個案件", aiDirection:"生成之報告書自動匯入 XERNO / NAS。", expectedOutput:"問答功能。", logic:"—", tag:"風險評估" },
+  { id:"val-11", department:"評價部", name:"專利權、商標權、許可證清單", status:STATUS.PLANNING, progress:0, frequency:"每個案件", aiDirection:"公司名稱查找所有無形資產清單，並自動匯入指定資料夾。", expectedOutput:"各項無形資產原始檔案、報告書用表格。", logic:"網站爬蟲 + 格式化。", tag:"無形資產" },
+  { id:"val-12", department:"評價部", name:"科目餘額明細表（長投、非營運性資產負債）", status:STATUS.PLANNING, progress:0, frequency:"按需要", aiDirection:"客戶提供之資料轉 Excel，並自動核對大表金額相符。", expectedOutput:"Excel 明細表，並顯示與大表相符之字樣。", logic:"轉檔機器人處理。", tag:"財務報表" },
+  { id:"val-13", department:"評價部", name:"產業分析資料", status:STATUS.PLANNING, progress:0, frequency:"每個案件", aiDirection:"自動串接標的公司 API，自動化執行並撇取資料。", expectedOutput:"—", logic:"—", tag:"產業分析" },
+  { id:"val-14", department:"評價部", name:"可類比公司篩選", status:STATUS.PLANNING, progress:0, frequency:"每個案件", aiDirection:"自動串接標的公司 API，自動化執行並撇取資料。", expectedOutput:"—", logic:"—", tag:"市場法" },
+  { id:"val-15", department:"評價部", name:"華淵歷史案件資料庫", status:STATUS.PLANNING, progress:0, frequency:"按需要", aiDirection:"文管系統列出各產業，彙整合適的比較公司。", expectedOutput:"問答功能。", logic:"UI 介面，限定範圍內查詢。", tag:"資料庫" },
+  { id:"val-16", department:"評價部", name:"Bloomberg 資料抓取", status:STATUS.PLANNING, progress:0, frequency:"每個案件", aiDirection:"—", expectedOutput:"自動生成報告書用圖表。", logic:"—", tag:"資料來源" },
+  { id:"val-17", department:"評價部", name:"控制權折溢價資料", status:STATUS.PLANNING, progress:0, frequency:"每個案件", aiDirection:"自動串接標的公司 API，自動化執行並撇取資料。", expectedOutput:"—", logic:"—", tag:"評價參數" },
+  { id:"val-18", department:"評價部", name:"流動性折價資料（Chaffee & Finnerty）", status:STATUS.PLANNING, progress:0, frequency:"按需要", aiDirection:"DLOM 機器人，只需輸入 S、X、T，自動計算 RF 及波動率，篩選出合適的 DLOM 比率。", expectedOutput:"波動率計算表、原始計算過程、報告書用表格。", logic:"爬蟲抓股價 → 計算波動率 → 生成報告書表格。", tag:"評價參數" },
+  { id:"val-19", department:"評價部", name:"WACC 驗算", status:STATUS.PLANNING, progress:0, frequency:"每個案件", aiDirection:"要有一支驗算機器人，確保 Wendy 計算結果無誤。", expectedOutput:"顯示驗算結果無誤。", logic:"—", tag:"評價參數" },
+  { id:"val-20", department:"評價部", name:"Beta 原始值", status:STATUS.PLANNING, progress:0, frequency:"需要 review 的案件", aiDirection:"自動擷取 BB ticker 畫面，或其他方式，不需要人工透筆抓 Beta 圖檔。", expectedOutput:"Beta 原始資料（供 review 使用）。", logic:"—", tag:"評價參數" },
+  { id:"val-21", department:"評價部", name:"股價/財報（週）資料 - 台灣", status:STATUS.PLANNING, progress:0, frequency:"台灣公司每季 1 次", aiDirection:"爬蟲程式自動啟動。", expectedOutput:"每季財報揭露後，爬蟲程式自動於午夜啟動，撇取資料存入華淵資料庫。", logic:"自動啟動爬蟲程式。", tag:"爬蟲" },
+  { id:"val-22", department:"評價部", name:"無風險利率機器人", status:STATUS.PLANNING, progress:0, frequency:"每月 1 次", aiDirection:"爬蟲程式自動啟動。", expectedOutput:"每月月底，爬蟲程式自動於午夜啟動，撇取資料存入華淵資料庫。", logic:"自動啟動爬蟲程式。", tag:"爬蟲" },
+  { id:"val-23", department:"評價部", name:"市場報酬率機器人", status:STATUS.PLANNING, progress:0, frequency:"每月 1 次", aiDirection:"爬蟲程式自動啟動。", expectedOutput:"每月月底，爬蟲程式自動於午夜啟動，撇取資料存入華淵資料庫。", logic:"自動啟動爬蟲程式。", tag:"爬蟲" },
+  { id:"val-24", department:"評價部", name:"國家風險溢酬", status:STATUS.PLANNING, progress:0, frequency:"每半年 1 次", aiDirection:"爬蟲程式自動啟動。", expectedOutput:"1/5、7/5，爬蟲程式自動於午夜啟動，撇取資料存入華淵資料庫。", logic:"自動啟動爬蟲程式。", tag:"爬蟲" },
+  { id:"val-25", department:"評價部", name:"稅率 - OECD", status:STATUS.PLANNING, progress:0, frequency:"每年 1 次", aiDirection:"製作爬蟲程式，每年自動撇取稅率，設定總表，附屬於 Wendy 程式中。", expectedOutput:"每年年底自動於午夜啟動，撇取資料存入華淵資料庫。", logic:"爬蟲（OECD）。", tag:"爬蟲" },
+  { id:"val-26", department:"評價部", name:"基準利率", status:STATUS.PLANNING, progress:0, frequency:"每月 1 次", aiDirection:"製作爬蟲程式，每月自動撇取借款利率，設定總表，附屬於 Wendy 程式中。", expectedOutput:"每月月底自動於午夜啟動，撇取資料存入華淵資料庫。", logic:"爬蟲（同無風險利率小程式）。", tag:"爬蟲" },
+  { id:"val-27", department:"評價部", name:"評價基準日匯率", status:STATUS.PLANNING, progress:0, frequency:"每月 1 次", aiDirection:"製作爬蟲程式，每月自動撇取匯率，設定總表，附屬於 Wendy 程式中。", expectedOutput:"每月月底自動於午夜啟動，撇取資料存入華淵資料庫。", logic:"爬蟲（台灣用中央銀行；中國用外管局、人民銀行，並須註明出處）。", tag:"爬蟲" },
+  { id:"val-28", department:"評價部", name:"市場授權金資料", status:STATUS.PLANNING, progress:0, frequency:"每技術 / 商標 / PPA 案", aiDirection:"1. 文管系統列出各產業，彙整合適的授權金比率。\n2. 上 ktmine 運用關鍵字人工/自動抓取所有資料進系統，彙整授權金資料。", expectedOutput:"1. 問答功能。\n2. 報告書用表格、計算檔用表格。", logic:"UI 介面，限定範圍內查詢。", tag:"無形資產" },
+  { id:"val-29", department:"評價部", name:"經濟年限", status:STATUS.PLANNING, progress:0, frequency:"每技術 / PPA 案", aiDirection:"1. 文管系統列出各產業合適的併購年限。\n2. 針對台灣/美國 SEC Filing，運用爬蟲及 OCR，判斷併購發生時點之無形資產辨識科目、攝銷年限，並彙整成資料庫。", expectedOutput:"1. 問答功能。\n2. 報告書用表格、計算檔用表格。", logic:"UI 介面，限定範圍內查詢。", tag:"無形資產" },
+  { id:"val-30", department:"評價部", name:"股票成交量周轉率", status:STATUS.PLANNING, progress:0, frequency:"興櫃 / 低成交量案", aiDirection:"製作成交量周轉率機器人。", expectedOutput:"股票成交量周轉率計算表、是否符合標準之判定結果。", logic:"公開資訊站、goodinfo!、Yahoo Finance 交叉驗證。", tag:"評價參數" },
+  { id:"val-31", department:"評價部", name:"計算檔核對", status:STATUS.PLANNING, progress:0, frequency:"每個案件", aiDirection:"針對跨檔案進行核對。", expectedOutput:"輸出差異點報告（詳細列出兩個檔案之間的不同）。", logic:"—", tag:"檔案核對" },
+  { id:"val-32", department:"評價部", name:"底稿製作", status:STATUS.PLANNING, progress:0, frequency:"每個案件（需要 Review）", aiDirection:"底稿機器人（自動抓取母檔製作底稿）。", expectedOutput:"底稿（For Review 用）。", logic:"—", tag:"文件產出" },
+  { id:"val-33", department:"評價部", name:"報告書附件製作", status:STATUS.PLANNING, progress:0, frequency:"每個案件", aiDirection:"報告書附件機器人（自動抓取母檔製作報告書附件）。", expectedOutput:"報告書附件（For 各報告書使用）。", logic:"—", tag:"文件產出" },
+  { id:"mgmt-saas-system", department:"管理部", name:"SaaS 系統", status:STATUS.IN_PROGRESS, progress:50, frequency:"長期專案", aiDirection:"導入 SaaS 系統改善管理流程，提升內部協作效率。", expectedOutput:"SaaS 系統上線運作，整合現有管理流程。", logic:"需求盤點 → 系統選型 → 導入建置 → 教育訓練 → 上線", tag:"系統導入" },
+  { id:"mgmt-bulletin-board", department:"管理部", name:"布告欄", status:STATUS.DONE, progress:100, frequency:"長期運作", aiDirection:"建置內部公告布告欄系統，讓重要訊息更易觸及同仁。", expectedOutput:"上線之布告欄系統，提供公告發佈、瀏覽功能。", logic:"需求規劃 → 系統建置 → 內容遷移 → 上線", tag:"內部工具" },
+];
+
+
+/* ===== EDITS ===== */
+const STORAGE_KEY = 'ai-center-blueprint-edits-v1';
+function loadEdits() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch { return {}; } }
+function saveEdits(edits) { localStorage.setItem(STORAGE_KEY, JSON.stringify(edits)); flashSaveChip(); }
+function getEdit(id) { const all = loadEdits(); return all[id] || { plannedStart:'', plannedEnd:'', owner:'', notes:'', subtasks: [] }; }
+function updateEdit(id, patch) { const all = loadEdits(); all[id] = { ...getEdit(id), ...patch }; saveEdits(all); }
+function addSubtask(id, title) { const e = getEdit(id); const st = { id:'st-'+Date.now()+'-'+Math.random().toString(36).slice(2,6), title, done:false, dueDate:'' }; updateEdit(id, { subtasks: [...e.subtasks, st] }); }
+function patchSubtask(id, stId, patch) { const e = getEdit(id); updateEdit(id, { subtasks: e.subtasks.map(s => s.id===stId ? {...s,...patch} : s) }); }
+function removeSubtask(id, stId) { const e = getEdit(id); updateEdit(id, { subtasks: e.subtasks.filter(s => s.id!==stId) }); }
+
+function flashSaveChip() {
+  const el = document.getElementById('save-chip');
+  if (!el) return;
+  el.style.opacity = '1';
+  clearTimeout(el._t);
+  el._t = setTimeout(()=>{ el.style.opacity = '0'; }, 1200);
+}
+
+/* ===== CUSTOM PROJECTS ===== */
+const CUSTOM_KEY = 'ai-center-custom-projects-v1';
+function loadCustom() { try { return JSON.parse(localStorage.getItem(CUSTOM_KEY) || '[]'); } catch { return []; } }
+function saveCustom(arr) { localStorage.setItem(CUSTOM_KEY, JSON.stringify(arr)); flashSaveChip(); }
+function addCustomProject(p) { const arr = loadCustom(); arr.push(p); saveCustom(arr); }
+function removeCustomProject(id) { saveCustom(loadCustom().filter(x => x.id !== id)); }
+function getAllProjects() { return [...projects, ...loadCustom()]; }
+function getAllDepartments() {
+  const set = new Set(DEPARTMENTS);
+  loadCustom().forEach(p => { if (p.department) set.add(p.department); });
+  return Array.from(set);
+}
+
+/* ===== DERIVED PROGRESS ===== */
+function getProjectProgress(p) {
+  const e = getEdit(p.id);
+  if (e.subtasks && e.subtasks.length > 0) {
+    const done = e.subtasks.filter(s => s.done).length;
+    return Math.round((done / e.subtasks.length) * 100);
+  }
+  return p.progress || 0;
+}
+
+/* ===== STATE ===== */
+const state = {
+  department: '\u5168\u90e8',
+  status: '\u5168\u90e8',
+  query: '',
+  expanded: null,
+  modalOpen: false,
+};
+
+function getStats(list) {
+  const total = list.length;
+  const done = list.filter(p => p.status === STATUS.DONE).length;
+  const inProgress = list.filter(p => p.status === STATUS.IN_PROGRESS).length;
+  const planning = list.filter(p => p.status === STATUS.PLANNING).length;
+  const completionRate = total > 0 ? Math.round((done / total) * 100) : 0;
+  return { total, done, inProgress, planning, completionRate };
+}
+function getStatsByDepartment(list) {
+  const result = {};
+  const depts = Array.from(new Set([...DEPARTMENTS, ...list.map(p => p.department)]));
+  depts.forEach(dept => {
+    const dp = list.filter(p => p.department === dept);
+    const s = {
+      total: dp.length,
+      done: dp.filter(p => p.status === STATUS.DONE).length,
+      inProgress: dp.filter(p => p.status === STATUS.IN_PROGRESS).length,
+      planning: dp.filter(p => p.status === STATUS.PLANNING).length,
+    };
+    s.completionRate = s.total > 0 ? Math.round((s.done / s.total) * 100) : 0;
+    result[dept] = s;
+  });
+  return result;
+}
+function getFiltered() {
+  return getAllProjects().filter(p => {
+    if (state.department !== '\u5168\u90e8' && p.department !== state.department) return false;
+    if (state.status !== '\u5168\u90e8' && p.status !== state.status) return false;
+    if (state.query) {
+      const q = state.query.toLowerCase();
+      if (!p.name.toLowerCase().includes(q) && !(p.tag||'').toLowerCase().includes(q)) return false;
+    }
+    return true;
+  });
+}
+
+/* ===== STYLES ===== */
+const statusStyle = {
+  [STATUS.DONE]: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',
+  [STATUS.IN_PROGRESS]: 'bg-amber-500/15 text-amber-300 border-amber-500/30',
+  [STATUS.PLANNING]: 'bg-slate-500/15 text-slate-300 border-slate-500/30',
+};
+const deptStyle = {
+  '\u8a55\u50f9\u90e8': 'bg-blue-500/15 text-blue-300 border-blue-500/30',
+  '\u7ba1\u7406\u90e8': 'bg-purple-500/15 text-purple-300 border-purple-500/30',
+};
+function deptClass(dept) { return deptStyle[dept] || 'bg-gray-500/15 text-gray-300 border-gray-500/30'; }
+const progressColor = (s) =>
+  s === STATUS.DONE ? 'bg-emerald-500' :
+  s === STATUS.IN_PROGRESS ? 'bg-amber-500' : 'bg-slate-500';
+
+function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+
+/* ===== RENDER MAIN ===== */
+function render() {
+  const allProjects = getAllProjects();
+  const allDepartments = getAllDepartments();
+  const filtered = getFiltered();
+  const stats = getStats(allProjects);
+  const byDept = getStatsByDepartment(allProjects);
+  const lastUpdate = new Date().toLocaleString('zh-TW', { year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' });
+
+  const statsCards = [
+    { label:'\u5168\u90e8\u9805\u76ee', value:stats.total, sub:'\u500b\u958b\u767c\u9805\u76ee', accent:'from-blue-500/20 to-blue-500/5', text:'text-blue-300' },
+    { label:'\u5df2\u5b8c\u6210', value:stats.done, sub:`\u5b8c\u6210\u7387 ${stats.completionRate}%`, accent:'from-emerald-500/20 to-emerald-500/5', text:'text-emerald-300' },
+    { label:'\u9032\u884c\u4e2d', value:stats.inProgress, sub:'\u958b\u767c\u4e2d\u9805\u76ee', accent:'from-amber-500/20 to-amber-500/5', text:'text-amber-300' },
+    { label:'\u898f\u5283\u4e2d', value:stats.planning, sub:'\u5f85\u555f\u52d5\u9805\u76ee', accent:'from-slate-500/20 to-slate-500/5', text:'text-slate-300' },
+  ];
+
+  const statsHtml = `<section class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    ${statsCards.map(c=>`
+      <div class="relative overflow-hidden rounded-xl border border-[var(--border)] bg-gradient-to-br ${c.accent} bg-[var(--panel)] p-5">
+        <div class="text-xs text-[var(--text-muted)]">${c.label}</div>
+        <div class="mt-1 text-4xl font-bold tabular-nums ${c.text}">${c.value}</div>
+        <div class="mt-1 text-xs text-[var(--text-muted)]">${c.sub}</div>
+      </div>`).join('')}
+  </section>`;
+
+  const deptHtml = `<section class="rounded-xl border border-[var(--border)] bg-[var(--panel)] p-5">
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <h2 class="font-semibold">\u5ba2\u6236\u90e8\u9580\u9032\u5ea6</h2>
+        <p class="text-xs text-[var(--text-muted)] mt-0.5">\u76ee\u524d AI \u4e2d\u5fc3\u5ba2\u6236\uff1a${allDepartments.join('\u3001')}\uff08\u672a\u4f86\u5c07\u64f4\u5145\u5176\u4ed6\u90e8\u9580\uff09</p>
+      </div>
+      <div class="text-xs text-[var(--text-muted)]">\u5171 ${allDepartments.length} \u500b\u90e8\u9580</div>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      ${allDepartments.map(dept => {
+        const s = byDept[dept];
+        const donePct = s.total ? (s.done/s.total)*100 : 0;
+        const inPct = s.total ? (s.inProgress/s.total)*100 : 0;
+        return `<button data-dept-card="${dept}" class="text-left rounded-lg border border-[var(--border)] bg-[var(--panel-2)] p-4 hover:border-brand-500 transition-colors cursor-pointer">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2">
+              <span class="h-2 w-2 rounded-full bg-brand-500"></span>
+              <h3 class="font-semibold text-base">${dept}</h3>
+              <span class="text-xs text-[var(--text-muted)]">\u5171 ${s.total} \u9805</span>
+            </div>
+            <div class="text-right">
+              <div class="text-2xl font-bold text-emerald-300 tabular-nums">${s.completionRate}%</div>
+              <div class="text-[10px] text-[var(--text-muted)]">\u5b8c\u6210\u7387</div>
+            </div>
+          </div>
+          <div class="h-2.5 w-full rounded-full overflow-hidden bg-slate-700/40 flex">
+            <div class="bg-emerald-500 h-full transition-all" style="width:${donePct}%"></div>
+            <div class="bg-amber-500 h-full transition-all" style="width:${inPct}%"></div>
+          </div>
+          <div class="mt-3 flex items-center justify-between text-xs">
+            <span class="flex items-center gap-1.5 text-emerald-300"><span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>\u5df2\u5b8c\u6210 ${s.done}</span>
+            <span class="flex items-center gap-1.5 text-amber-300"><span class="h-1.5 w-1.5 rounded-full bg-amber-500"></span>\u9032\u884c\u4e2d ${s.inProgress}</span>
+            <span class="flex items-center gap-1.5 text-slate-300"><span class="h-1.5 w-1.5 rounded-full bg-slate-500"></span>\u898f\u5283\u4e2d ${s.planning}</span>
+          </div>
+          <div class="mt-2 text-[10px] text-brand-500/90 text-right">\u9ede\u64ca\u5207\u63db\u81f3\u6b64\u90e8\u9580 \u2192</div>
+        </button>`;
+      }).join('')}
+    </div>
+  </section>`;
+
+  const deptTabs = ['\u5168\u90e8', ...allDepartments];
+  const deptTabCounts = { '\u5168\u90e8': allProjects.length };
+  allDepartments.forEach(d => { deptTabCounts[d] = allProjects.filter(p=>p.department===d).length; });
+
+  const tabsHtml = `<section class="rounded-xl border border-[var(--border)] bg-[var(--panel)] p-2">
+    <div class="flex flex-wrap gap-1">
+      ${deptTabs.map(d => `
+        <button class="tab-btn ${state.department===d?'active':''} px-5 py-3 rounded-lg text-sm font-medium border border-transparent text-[var(--text-muted)] hover:text-[var(--text)]"
+          data-filter="department" data-value="${d}">
+          ${d}
+          <span class="ml-2 text-xs text-[var(--text-muted)]">(${deptTabCounts[d]})</span>
+        </button>
+      `).join('')}
+    </div>
+  </section>`;
+
+  const statuses = ['\u5168\u90e8', STATUS.DONE, STATUS.IN_PROGRESS, STATUS.PLANNING];
+  const filterHtml = `<section class="rounded-xl border border-[var(--border)] bg-[var(--panel)] p-4">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+      <div class="flex flex-wrap items-center gap-3">
+        <div class="flex items-center gap-2">
+          <span class="text-xs text-[var(--text-muted)]">\u72c0\u614b</span>
+          <div class="flex rounded-lg border border-[var(--border)] bg-[var(--panel-2)] p-0.5">
+            ${statuses.map(s => `<button class="filter-btn px-3 py-1 text-xs rounded-md transition-colors ${state.status===s?'active text-white':'text-[var(--text-muted)] hover:text-[var(--text)]'}" data-filter="status" data-value="${s}">${s}</button>`).join('')}
+          </div>
+        </div>
+      </div>
+      <div class="flex items-center gap-3 flex-wrap">
+        <input type="text" id="search-input" placeholder="\u641c\u5c0b\u9805\u76ee\u540d\u7a31\u6216\u6a19\u7c64..." value="${escapeHtml(state.query)}"
+          class="w-full md:w-60 form-input !py-1.5 !text-sm" />
+        <div class="text-xs text-[var(--text-muted)] whitespace-nowrap">
+          \u986f\u793a <span class="text-[var(--text)] font-semibold">${filtered.length}</span> / ${allProjects.length}
+        </div>
+        <button class="btn btn-primary" data-open-modal>+ \u65b0\u589e\u9805\u76ee</button>
+      </div>
+    </div>
+  </section>`;
+
+  let tableHtml = '';
+  if (filtered.length === 0) {
+    tableHtml = `<div class="rounded-xl border border-[var(--border)] bg-[var(--panel)] p-10 text-center text-[var(--text-muted)]">\u6c92\u6709\u7b26\u5408\u689d\u4ef6\u7684\u9805\u76ee</div>`;
+  } else {
+    tableHtml = renderTable(filtered);
+  }
+
+  document.getElementById('app').innerHTML = `
+    <main class="min-h-screen">
+      <header class="border-b border-[var(--border)] bg-[var(--panel)]/80 backdrop-blur sticky top-0 z-10">
+        <div class="max-w-[1600px] mx-auto px-6 py-4 flex items-center justify-between">
+          <div>
+            <h1 class="text-xl md:text-2xl font-bold tracking-tight">AI \u4e2d\u5fc3 \u00b7 \u958b\u767c\u85cd\u5716 Dashboard</h1>
+            <p class="text-xs text-[var(--text-muted)] mt-0.5">\u83ef\u6df5\u9451\u50f9 \u00b7 2026 \u6578\u4f4d\u8f49\u578b\u7e3d\u85cd\u5716\u8ffd\u8e64</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <span id="save-chip" class="save-chip transition-opacity" style="opacity:0">\u2713 \u5df2\u5132\u5b58</span>
+            <div class="text-right text-xs text-[var(--text-muted)]">
+              <div>\u6700\u5f8c\u66f4\u65b0</div>
+              <div class="text-[var(--text)] font-medium">${lastUpdate}</div>
+            </div>
+          </div>
+        </div>
+      </header>
+      <div class="max-w-[1600px] mx-auto px-6 py-6 space-y-6">
+        ${statsHtml}
+        ${deptHtml}
+        ${tabsHtml}
+        ${filterHtml}
+        ${tableHtml}
+      </div>
+      <footer class="border-t border-[var(--border)] mt-10 py-6 text-center text-xs text-[var(--text-muted)]">
+        AI \u4e2d\u5fc3 \u958b\u767c\u85cd\u5716 \u00b7 Powered by Next.js \u00b7 Deployed on Vercel
+      </footer>
+    </main>
+    ${renderModal(allDepartments)}
+  `;
+  bind();
+}
+
+
+/* ===== RENDER TABLE ===== */
+function renderTable(filtered) {
+  return `<section class="rounded-xl border border-[var(--border)] bg-[var(--panel)] overflow-hidden">
+    <div class="px-5 py-3 border-b border-[var(--border)] flex items-center justify-between">
+      <div class="text-sm font-semibold">${state.department==='\u5168\u90e8'?'\u5168\u90e8\u9805\u76ee':state.department+' \u9805\u76ee'}</div>
+      <div class="text-xs text-[var(--text-muted)]">\u9ede\u64ca\u9805\u76ee\u5217 \u53ef\u5c55\u958b\u7de8\u8f2f\u6392\u7a0b\u8207\u7d30\u9805</div>
+    </div>
+    <div class="overflow-x-auto scrollbar-thin">
+      <table class="w-full text-sm">
+        <thead class="bg-[var(--panel-2)] text-[var(--text-muted)] text-xs uppercase tracking-wider">
+          <tr>
+            <th class="text-left px-4 py-3 font-medium">#</th>
+            <th class="text-left px-4 py-3 font-medium">\u9805\u76ee\u540d\u7a31</th>
+            <th class="text-left px-4 py-3 font-medium">\u90e8\u9580</th>
+            <th class="text-left px-4 py-3 font-medium">\u5206\u985e</th>
+            <th class="text-left px-4 py-3 font-medium">\u72c0\u614b</th>
+            <th class="text-left px-4 py-3 font-medium w-32">\u9032\u5ea6</th>
+            <th class="text-left px-4 py-3 font-medium">\u7d30\u9805</th>
+            <th class="text-left px-4 py-3 font-medium">\u9810\u8a08\u671f\u7a0b</th>
+            <th class="text-right px-4 py-3 font-medium w-16"></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${filtered.map((p, idx) => {
+            const isOpen = state.expanded === p.id;
+            const e = getEdit(p.id);
+            const pct = getProjectProgress(p);
+            const subDone = e.subtasks.filter(s=>s.done).length;
+            const subTotal = e.subtasks.length;
+            const plannedRange = (e.plannedStart || e.plannedEnd)
+              ? `${e.plannedStart||'\u2014'} ~ ${e.plannedEnd||'\u2014'}`
+              : (p.startDate ? `${p.startDate}${p.endDate?(' ~ '+p.endDate):''}` : '\u2014');
+            return `
+              <tr data-row="${p.id}" class="border-t border-[var(--border)] hover:bg-[var(--panel-2)]/50 cursor-pointer transition-colors">
+                <td class="px-4 py-3 text-[var(--text-muted)] tabular-nums">${String(idx+1).padStart(2,'0')}</td>
+                <td class="px-4 py-3 font-medium">${escapeHtml(p.name)}${p.isCustom?'<span class="custom-badge">\u81ea\u8a02</span>':''}</td>
+                <td class="px-4 py-3"><span class="inline-flex px-2 py-0.5 rounded border text-xs ${deptClass(p.department)}">${p.department}</span></td>
+                <td class="px-4 py-3 text-[var(--text-muted)] text-xs">${escapeHtml(p.tag||'\u2014')}</td>
+                <td class="px-4 py-3"><span class="inline-flex px-2 py-0.5 rounded border text-xs ${statusStyle[p.status]||''}">${p.status}</span></td>
+                <td class="px-4 py-3">
+                  <div class="flex items-center gap-2">
+                    <div class="h-1.5 w-20 rounded-full bg-slate-700/40 overflow-hidden">
+                      <div class="h-full ${progressColor(p.status)}" style="width:${pct}%"></div>
+                    </div>
+                    <span class="text-xs text-[var(--text-muted)] tabular-nums w-10">${pct}%</span>
+                  </div>
+                </td>
+                <td class="px-4 py-3 text-[var(--text-muted)] text-xs">
+                  ${subTotal>0 ? `<span class="text-emerald-300">${subDone}</span>/${subTotal}` : '\u2014'}
+                </td>
+                <td class="px-4 py-3 text-[var(--text-muted)] text-xs whitespace-nowrap">${plannedRange}</td>
+                <td class="px-4 py-3 text-right text-[var(--text-muted)]"><span class="inline-block transition-transform ${isOpen?'rotate-180':''}">\u25be</span></td>
+              </tr>
+              <tr data-detail="${p.id}" class="${isOpen?'open ':''}border-t border-[var(--border)] bg-[var(--panel-2)]/30">
+                <td colspan="9" class="px-6 py-5">
+                  ${renderDetail(p)}
+                </td>
+              </tr>
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  </section>`;
+}
+
+/* ===== RENDER DETAIL ===== */
+function renderDetail(p) {
+  const e = getEdit(p.id);
+  const subDone = e.subtasks.filter(s=>s.done).length;
+  const subTotal = e.subtasks.length;
+  return `
+    <div class="space-y-5">
+      <div>
+        <div class="text-[11px] uppercase tracking-wider text-brand-500 font-semibold mb-2">\u85cd\u5716\u8a2d\u5b9a${p.isCustom?'\uff08\u4f7f\u7528\u8005\u65b0\u589e\uff09':'\uff08\u4f86\u81ea Excel\uff09'}</div>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 text-xs">
+          <div>
+            <div class="text-[10px] uppercase tracking-wider text-[var(--text-muted)] mb-1.5">\u5e0c\u671b AI \u6539\u5584\u65b9\u5411</div>
+            <div class="whitespace-pre-wrap leading-relaxed">${escapeHtml(p.aiDirection||'\u2014')}</div>
+          </div>
+          <div>
+            <div class="text-[10px] uppercase tracking-wider text-[var(--text-muted)] mb-1.5">\u9810\u671f\u8f38\u51fa\u6210\u679c</div>
+            <div class="whitespace-pre-wrap leading-relaxed">${escapeHtml(p.expectedOutput||'\u2014')}</div>
+          </div>
+          <div>
+            <div class="text-[10px] uppercase tracking-wider text-[var(--text-muted)] mb-1.5">\u4efb\u52d9\u6b65\u9a5f / \u908f\u8f2f</div>
+            <div class="whitespace-pre-wrap leading-relaxed">${escapeHtml(p.logic||'\u2014')}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="border-t border-[var(--border)]"></div>
+
+      <div>
+        <div class="text-[11px] uppercase tracking-wider text-emerald-300 font-semibold mb-2">\u9810\u8a08\u6392\u7a0b\uff08\u53ef\u7de8\u8f2f\uff0c\u81ea\u52d5\u5132\u5b58\uff09</div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+          <div>
+            <label class="block text-[10px] text-[var(--text-muted)] mb-1">\u9810\u8a08\u958b\u59cb</label>
+            <input type="date" class="form-input w-full" data-edit="plannedStart" data-pid="${p.id}" value="${escapeHtml(e.plannedStart)}" />
+          </div>
+          <div>
+            <label class="block text-[10px] text-[var(--text-muted)] mb-1">\u9810\u8a08\u5b8c\u6210</label>
+            <input type="date" class="form-input w-full" data-edit="plannedEnd" data-pid="${p.id}" value="${escapeHtml(e.plannedEnd)}" />
+          </div>
+          <div>
+            <label class="block text-[10px] text-[var(--text-muted)] mb-1">\u8ca0\u8cac\u4eba</label>
+            <input type="text" class="form-input w-full" placeholder="\u4f8b\uff1aLouis" data-edit="owner" data-pid="${p.id}" value="${escapeHtml(e.owner)}" />
+          </div>
+          <div>
+            <label class="block text-[10px] text-[var(--text-muted)] mb-1">\u5099\u8a3b</label>
+            <input type="text" class="form-input w-full" placeholder="\u984d\u5916\u8cc7\u8a0a..." data-edit="notes" data-pid="${p.id}" value="${escapeHtml(e.notes)}" />
+          </div>
+        </div>
+      </div>
+
+      <div class="border-t border-[var(--border)]"></div>
+
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <div class="text-[11px] uppercase tracking-wider text-amber-300 font-semibold">\u7d30\u9805\u4efb\u52d9\uff08\u53ef\u7de8\u8f2f\uff0c\u81ea\u52d5\u5132\u5b58\uff09</div>
+          <div class="text-[10px] text-[var(--text-muted)]">
+            ${subTotal>0 ? `\u5df2\u5b8c\u6210 ${subDone} / ${subTotal}\uff08${Math.round(subDone/subTotal*100)}%\uff09` : '\u76ee\u524d\u6c92\u6709\u7d30\u9805'}
+          </div>
+        </div>
+        <div class="space-y-1.5 mb-2">
+          ${e.subtasks.map(s => `
+            <div class="subtask-row ${s.done?'done':''}">
+              <input type="checkbox" class="check" data-sub-toggle data-pid="${p.id}" data-sid="${s.id}" ${s.done?'checked':''} />
+              <input type="text" class="subtask-title flex-1 bg-transparent border-0 p-0 text-xs text-[var(--text)] focus:outline-none focus:ring-0"
+                data-sub-title data-pid="${p.id}" data-sid="${s.id}" value="${escapeHtml(s.title)}" />
+              <input type="date" class="form-input !py-1 !text-[11px]" data-sub-date data-pid="${p.id}" data-sid="${s.id}" value="${escapeHtml(s.dueDate)}" />
+              <button class="btn-danger btn" data-sub-remove data-pid="${p.id}" data-sid="${s.id}" title="\u79fb\u9664">\u2715</button>
+            </div>
+          `).join('')}
+        </div>
+        <form class="flex items-center gap-2" data-sub-add-form data-pid="${p.id}">
+          <input type="text" class="form-input flex-1" placeholder="\u65b0\u589e\u7d30\u9805\u4efb\u52d9\uff0c\u4f8b\uff1a\u9700\u6c42\u8a2a\u8ac7\u3001\u539f\u578b\u958b\u767c..." data-sub-add-input />
+          <button type="submit" class="btn btn-primary">+ \u65b0\u589e</button>
+        </form>
+      </div>
+
+      ${p.isCustom ? `
+        <div class="border-t border-[var(--border)]"></div>
+        <div class="flex items-center justify-between">
+          <div class="text-[11px] text-[var(--text-muted)]">\u6b64\u70ba\u4f7f\u7528\u8005\u81ea\u8a02\u9805\u76ee\uff08\u4e0d\u5728 Excel \u85cd\u5716\u4e2d\uff09</div>
+          <button class="btn" data-delete-custom="${p.id}" style="color:#fca5a5;border-color:rgba(248,113,113,.3);background:rgba(127,29,29,.15);">\ud83d\uddd1 \u522a\u9664\u6b64\u9805\u76ee</button>
+        </div>
+      ` : ''}
+    </div>
+  `;
+}
+
+/* ===== RENDER MODAL ===== */
+function renderModal(allDepartments) {
+  if (!state.modalOpen) return '';
+  return `
+    <div class="modal-overlay" data-close-modal>
+      <div class="modal-dialog" onclick="event.stopPropagation()">
+        <div class="modal-header">
+          <div>
+            <h2 class="text-lg font-semibold">\u65b0\u589e\u958b\u767c\u9805\u76ee</h2>
+            <p class="text-xs text-[var(--text-muted)] mt-0.5">\u9805\u76ee\u5efa\u7acb\u5f8c\u53ef\u5728\u5217\u8868\u4e2d\u7e7c\u7e8c\u7de8\u8f2f\u6392\u7a0b\u3001\u65b0\u589e\u7d30\u9805</p>
+          </div>
+          <button class="btn-danger btn" data-close-modal title="\u95dc\u9589">\u2715</button>
+        </div>
+        <form class="modal-body" data-submit-modal>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs text-[var(--text-muted)] mb-1">\u9805\u76ee\u540d\u7a31 <span class="text-red-400">*</span></label>
+              <input type="text" class="form-input w-full" name="name" required placeholder="\u4f8b\uff1a\u65b0\u6a5f\u5668\u4eba X" />
+            </div>
+            <div>
+              <label class="block text-xs text-[var(--text-muted)] mb-1">\u90e8\u9580 <span class="text-red-400">*</span></label>
+              <input list="dept-options" type="text" class="form-input w-full" name="department" required placeholder="\u9078\u64c7\u6216\u8f38\u5165\u65b0\u90e8\u9580" value="${escapeHtml(allDepartments[0] || '\u8a55\u50f9\u90e8')}" />
+              <datalist id="dept-options">
+                ${allDepartments.map(d => `<option value="${escapeHtml(d)}"></option>`).join('')}
+              </datalist>
+            </div>
+            <div>
+              <label class="block text-xs text-[var(--text-muted)] mb-1">\u72c0\u614b</label>
+              <select class="form-input w-full" name="status">
+                <option value="\u898f\u5283\u4e2d" selected>\u898f\u5283\u4e2d</option>
+                <option value="\u9032\u884c\u4e2d">\u9032\u884c\u4e2d</option>
+                <option value="\u5df2\u5b8c\u6210">\u5df2\u5b8c\u6210</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs text-[var(--text-muted)] mb-1">\u5206\u985e / \u6a19\u7c64</label>
+              <input type="text" class="form-input w-full" name="tag" placeholder="\u4f8b\uff1a\u6a5f\u5668\u4eba\u3001\u722c\u87f2" />
+            </div>
+            <div class="md:col-span-2">
+              <label class="block text-xs text-[var(--text-muted)] mb-1">\u57f7\u884c\u983b\u7387</label>
+              <input type="text" class="form-input w-full" name="frequency" placeholder="\u4f8b\uff1a\u6bcf\u500b\u6848\u4ef6\u3001\u6bcf\u6708 1 \u6b21" />
+            </div>
+            <div class="md:col-span-2">
+              <label class="block text-xs text-[var(--text-muted)] mb-1">\u5e0c\u671b AI \u6539\u5584\u65b9\u5411</label>
+              <textarea class="form-input w-full" name="aiDirection" rows="3" placeholder="\u63cf\u8ff0\u5e0c\u671b AI \u5982\u4f55\u5354\u52a9..."></textarea>
+            </div>
+            <div>
+              <label class="block text-xs text-[var(--text-muted)] mb-1">\u9810\u671f\u8f38\u51fa\u6210\u679c</label>
+              <textarea class="form-input w-full" name="expectedOutput" rows="3" placeholder="\u9810\u671f\u7522\u51fa\u4ec0\u9ebc..."></textarea>
+            </div>
+            <div>
+              <label class="block text-xs text-[var(--text-muted)] mb-1">\u4efb\u52d9\u6b65\u9a5f / \u908f\u8f2f</label>
+              <textarea class="form-input w-full" name="logic" rows="3" placeholder="\u57f7\u884c\u908f\u8f2f..."></textarea>
+            </div>
+          </div>
+          <div class="flex items-center justify-end gap-2 mt-5 pt-4 border-t border-[var(--border)]">
+            <button type="button" class="btn" data-close-modal>\u53d6\u6d88</button>
+            <button type="submit" class="btn btn-primary">\u5efa\u7acb\u9805\u76ee</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  `;
+}
+
+
+/* ===== EVENT BINDING ===== */
+function bind() {
+  // dept / status filter buttons
+  document.querySelectorAll('[data-filter]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      state[btn.dataset.filter] = btn.dataset.value;
+      render();
+    });
+  });
+  // dept cards
+  document.querySelectorAll('[data-dept-card]').forEach(card => {
+    card.addEventListener('click', () => {
+      state.department = card.dataset.deptCard;
+      render();
+      window.scrollTo({ top: document.body.scrollHeight/3, behavior:'smooth' });
+    });
+  });
+  // search
+  const input = document.getElementById('search-input');
+  if (input) {
+    input.addEventListener('input', (e) => {
+      state.query = e.target.value;
+      render();
+      const nx = document.getElementById('search-input');
+      if (nx) { nx.focus(); nx.setSelectionRange(nx.value.length, nx.value.length); }
+    });
+  }
+  // row expand
+  document.querySelectorAll('[data-row]').forEach(row => {
+    row.addEventListener('click', () => {
+      const id = row.dataset.row;
+      state.expanded = state.expanded === id ? null : id;
+      render();
+    });
+  });
+  // edits
+  document.querySelectorAll('[data-edit]').forEach(inp => {
+    inp.addEventListener('change', () => { updateEdit(inp.dataset.pid, { [inp.dataset.edit]: inp.value }); });
+    inp.addEventListener('blur', () => { updateEdit(inp.dataset.pid, { [inp.dataset.edit]: inp.value }); });
+    inp.addEventListener('click', e => e.stopPropagation());
+  });
+  // subtask toggle
+  document.querySelectorAll('[data-sub-toggle]').forEach(cb => {
+    cb.addEventListener('click', e => e.stopPropagation());
+    cb.addEventListener('change', () => {
+      patchSubtask(cb.dataset.pid, cb.dataset.sid, { done: cb.checked });
+      render();
+    });
+  });
+  // subtask title
+  document.querySelectorAll('[data-sub-title]').forEach(inp => {
+    inp.addEventListener('click', e => e.stopPropagation());
+    inp.addEventListener('change', () => { patchSubtask(inp.dataset.pid, inp.dataset.sid, { title: inp.value }); });
+    inp.addEventListener('blur', () => { patchSubtask(inp.dataset.pid, inp.dataset.sid, { title: inp.value }); });
+  });
+  // subtask date
+  document.querySelectorAll('[data-sub-date]').forEach(inp => {
+    inp.addEventListener('click', e => e.stopPropagation());
+    inp.addEventListener('change', () => { patchSubtask(inp.dataset.pid, inp.dataset.sid, { dueDate: inp.value }); });
+  });
+  // subtask remove
+  document.querySelectorAll('[data-sub-remove]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      removeSubtask(btn.dataset.pid, btn.dataset.sid);
+      render();
+    });
+  });
+  // subtask add form
+  document.querySelectorAll('[data-sub-add-form]').forEach(form => {
+    form.addEventListener('click', e => e.stopPropagation());
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      const inp = form.querySelector('[data-sub-add-input]');
+      const v = (inp.value || '').trim();
+      if (!v) return;
+      addSubtask(form.dataset.pid, v);
+      inp.value = '';
+      render();
+    });
+  });
+  // modal: open
+  document.querySelectorAll('[data-open-modal]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      state.modalOpen = true;
+      render();
+    });
+  });
+  // modal: close (overlay or close/cancel buttons)
+  document.querySelectorAll('[data-close-modal]').forEach(el => {
+    el.addEventListener('click', (e) => {
+      // only trigger if the click target IS the element itself (not children)
+      if (e.currentTarget !== e.target && !e.currentTarget.classList.contains('btn')) return;
+      state.modalOpen = false;
+      render();
+    });
+  });
+  // modal: submit
+  document.querySelectorAll('[data-submit-modal]').forEach(form => {
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const fd = new FormData(form);
+      const statusVal = fd.get('status') || '\u898f\u5283\u4e2d';
+      const newProject = {
+        id: 'custom-' + Date.now() + '-' + Math.random().toString(36).slice(2,6),
+        department: (fd.get('department') || '').trim() || '\u672a\u5206\u985e',
+        name: (fd.get('name') || '').trim(),
+        status: statusVal,
+        progress: statusVal === '\u5df2\u5b8c\u6210' ? 100 : (statusVal === '\u9032\u884c\u4e2d' ? 50 : 0),
+        tag: (fd.get('tag') || '').trim() || '\u81ea\u8a02',
+        frequency: (fd.get('frequency') || '').trim() || '\u2014',
+        aiDirection: (fd.get('aiDirection') || '').trim() || '\u2014',
+        expectedOutput: (fd.get('expectedOutput') || '').trim() || '\u2014',
+        logic: (fd.get('logic') || '').trim() || '\u2014',
+        isCustom: true,
+        createdAt: new Date().toISOString(),
+      };
+      if (!newProject.name) { alert('\u8acb\u586b\u5beb\u9805\u76ee\u540d\u7a31'); return; }
+      addCustomProject(newProject);
+      state.modalOpen = false;
+      state.expanded = newProject.id;
+      if (state.department !== '\u5168\u90e8' && state.department !== newProject.department) {
+        state.department = '\u5168\u90e8';
+      }
+      render();
+    });
+  });
+  // delete custom project
+  document.querySelectorAll('[data-delete-custom]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = btn.dataset.deleteCustom;
+      if (!confirm('\u78ba\u5b9a\u8981\u522a\u9664\u9019\u500b\u9805\u76ee\u55ce\uff1f\u6b64\u52d5\u4f5c\u7121\u6cd5\u5fa9\u539f\u3002')) return;
+      removeCustomProject(id);
+      if (state.expanded === id) state.expanded = null;
+      render();
+    });
+  });
+}
+
+// bootstrap
+render();
+</script>
+</body>
+</html>
