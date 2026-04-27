@@ -12,11 +12,14 @@ export async function PATCH(req, { params }) {
     data.completedAt = body.done ? new Date() : null;
   }
   if (body.status !== undefined) {
-    const allowed = ['planning', 'in_progress', 'done'];
+    const allowed = ['planning', 'in_progress', 'done_v1', 'done'];
     if (allowed.includes(body.status)) {
       data.status = body.status;
-      if (body.status === 'done') { data.isDone = true; data.completedAt = new Date(); }
-      else { data.isDone = false; data.completedAt = null; }
+      if (body.status === 'done' || body.status === 'done_v1') {
+        data.isDone = true; data.completedAt = new Date();
+      } else {
+        data.isDone = false; data.completedAt = null;
+      }
     }
   }
   if (body.dueDate !== undefined) data.dueDate = parseDate(body.dueDate);

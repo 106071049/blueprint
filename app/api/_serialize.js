@@ -59,10 +59,10 @@ export function serializeSubtask(s) {
 }
 
 export function statusToZh(s) {
-  return { done: '已完成', in_progress: '進行中', planning: '規劃中', archived: '已封存' }[s] || s;
+  return { done: '已完成', done_v1: '已完成第一版，版更優化中', in_progress: '進行中', planning: '規劃中', archived: '已封存' }[s] || s;
 }
 export function statusFromZh(zh) {
-  return { '已完成':'done', '進行中':'in_progress', '規劃中':'planning', '已封存':'archived' }[zh] || zh;
+  return { '已完成':'done', '已完成第一版，版更優化中':'done_v1', '進行中':'in_progress', '規劃中':'planning', '已封存':'archived' }[zh] || zh;
 }
 
 export function computeProgress(p) {
@@ -74,7 +74,7 @@ export function computeProgress(p) {
     }, 0);
     return Math.round(total / p.subtasks.length);
   }
-  return p.status === 'done' ? 100 : (p.status === 'in_progress' ? 50 : 0);
+  return (p.status === 'done' || p.status === 'done_v1') ? 100 : (p.status === 'in_progress' ? 50 : 0);
 }
 
 export function toIsoDate(d) {

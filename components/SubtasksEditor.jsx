@@ -58,9 +58,10 @@ export default function SubtasksEditor({ project, onAdd, onUpdate, onRemove }) {
 }
 
 const STATUS_OPTIONS = [
-  { value: 'planning',    label: '規劃中', color: '#94a3b8' },
-  { value: 'in_progress', label: '進行中', color: '#f59e0b' },
-  { value: 'done',        label: '已完成', color: '#10b981' },
+  { value: 'planning',    label: '規劃中',                   color: '#94a3b8' },
+  { value: 'in_progress', label: '進行中',                   color: '#f59e0b' },
+  { value: 'done_v1',     label: '已完成第一版，版更優化中', color: '#2dd4bf' },
+  { value: 'done',        label: '已完成',                   color: '#10b981' },
 ];
 
 function SubtaskRow({ s, onUpdate, onRemove }) {

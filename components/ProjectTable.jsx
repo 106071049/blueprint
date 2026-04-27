@@ -15,6 +15,7 @@ import SubtasksEditor from './SubtasksEditor';
 
 const statusStyle = {
   '已完成': 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',
+  '已完成第一版，版更優化中': 'bg-teal-500/15 text-teal-300 border-teal-500/30',
   '進行中': 'bg-amber-500/15 text-amber-300 border-amber-500/30',
   '規劃中': 'bg-slate-500/15 text-slate-300 border-slate-500/30',
 };
@@ -24,6 +25,7 @@ const deptStyle = {
 };
 const progressColor = (s) =>
   s === '已完成' ? 'bg-emerald-500' :
+  s === '已完成第一版，版更優化中' ? 'bg-teal-500' :
   s === '進行中' ? 'bg-amber-500' : 'bg-slate-500';
 
 export default function ProjectTable({ projects, department, api }) {
@@ -159,6 +161,7 @@ function SortableRow({ p, idx, isOpen, onToggle, onDelete, api }) {
           >
             <option value="規劃中">規劃中</option>
             <option value="進行中">進行中</option>
+            <option value="已完成第一版，版更優化中">已完成第一版，版更優化中</option>
             <option value="已完成">已完成</option>
           </select>
         </td>

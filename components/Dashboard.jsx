@@ -130,7 +130,7 @@ export default function Dashboard() {
             <FilterBar
               status={status} setStatus={setStatus}
               query={query} setQuery={setQuery}
-              statuses={['全部', '已完成', '進行中', '規劃中']}
+              statuses={['全部', '已完成', '已完成第一版，版更優化中', '進行中', '規劃中']}
               resultCount={filtered.length} totalCount={allProjects.length}
               onAddProject={() => setModalOpen(true)}
             />
