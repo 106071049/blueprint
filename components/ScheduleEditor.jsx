@@ -68,9 +68,6 @@ export default function ScheduleEditor({ project, onChange }) {
           />
         </Field>
       </div>
-      <p className="text-[10px] text-[var(--text-muted)] mt-2">
-        提示：按上方「重新計算排程」會依項目順序重算所有日期，會覆訊手動調整的日期。
-      </p>
     </div>
   );
 }

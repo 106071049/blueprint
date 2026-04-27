@@ -8,7 +8,6 @@ import DepartmentTabs from './DepartmentTabs';
 import ProjectTable from './ProjectTable';
 import FilterBar from './FilterBar';
 import AddProjectModal from './AddProjectModal';
-import ScheduleBar from './ScheduleBar';
 
 const DEFAULT_DEPARTMENTS = ['評價部', '管理部'];
 
@@ -134,12 +133,6 @@ export default function Dashboard() {
               statuses={['全部', '已完成', '進行中', '規劃中']}
               resultCount={filtered.length} totalCount={allProjects.length}
               onAddProject={() => setModalOpen(true)}
-            />
-            <ScheduleBar
-              settings={api.settings}
-              onUpdateSettings={api.updateSettings}
-              onRecompute={api.recomputeSchedule}
-              projectCount={allProjects.length}
             />
             <ProjectTable projects={filtered} department={department} api={api} />
           </>
