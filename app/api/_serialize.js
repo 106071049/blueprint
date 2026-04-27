@@ -51,6 +51,7 @@ export function serializeSubtask(s) {
     description: s.description || '',
     done: s.isDone,
     dueDate: s.dueDate ? toIsoDate(s.dueDate) : '',
+    manualProgress: s.manualProgress ?? null,
     createdAt: s.createdAt,
     updatedAt: s.updatedAt,
   };
@@ -66,8 +67,11 @@ export function statusFromZh(zh) {
 export function computeProgress(p) {
   if (p.manualProgress != null) return p.manualProgress;
   if (p.subtasks && p.subtasks.length > 0) {
-    const done = p.subtasks.filter(s => s.isDone).length;
-    return Math.round((done / p.subtasks.length) * 100);
+    const total = p.subtasks.reduce((acc, s) => {
+      const val = s.manualProgress != null ? s.manualProgress : (s.isDone ? 100 : 0);
+      return acc + val;
+    }, 0);
+    return Math.round(total / p.subtasks.length);
   }
   return p.status === 'done' ? 100 : (p.status === 'in_progress' ? 50 : 0);
 }

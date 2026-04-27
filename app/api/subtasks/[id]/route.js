@@ -13,6 +13,9 @@ export async function PATCH(req, { params }) {
   }
   if (body.dueDate !== undefined) data.dueDate = parseDate(body.dueDate);
   if (body.sortOrder !== undefined) data.sortOrder = body.sortOrder;
+  if (body.manualProgress !== undefined) {
+    data.manualProgress = body.manualProgress === null ? null : Math.min(100, Math.max(0, Number(body.manualProgress)));
+  }
   const updated = await prisma.subtask.update({ where: { id }, data });
   return NextResponse.json(serializeSubtask(updated));
 }
