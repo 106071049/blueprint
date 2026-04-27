@@ -150,8 +150,17 @@ function SortableRow({ p, idx, isOpen, onToggle, onDelete, api }) {
           <span className={`inline-flex px-2 py-0.5 rounded border text-xs ${deptStyle[p.department] || 'bg-gray-500/15 text-gray-300 border-gray-500/30'}`}>{p.department}</span>
         </td>
         <td className="px-4 py-3 text-[var(--text-muted)] text-xs hide-on-ipad-portrait cursor-pointer" onClick={onToggle}>{p.tag || '—'}</td>
-        <td className="px-4 py-3 cursor-pointer" onClick={onToggle}>
-          <span className={`inline-flex px-2 py-0.5 rounded border text-xs ${statusStyle[p.status] || ''}`}>{p.status}</span>
+        <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+          <select
+            className={`text-xs rounded border px-1.5 py-0.5 cursor-pointer ${statusStyle[p.status] || ''}`}
+            style={{ background: '#1e2a3a' }}
+            value={p.status}
+            onChange={(e) => api.updateProject(p.id, { status: e.target.value })}
+          >
+            <option value="規劃中">規劃中</option>
+            <option value="進行中">進行中</option>
+            <option value="已完成">已完成</option>
+          </select>
         </td>
         <td className="px-4 py-3 cursor-pointer" onClick={onToggle}>
           <div className="flex items-center gap-2">
