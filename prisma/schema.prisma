@@ -116,6 +116,7 @@ model Subtask {
   title         String    @db.VarChar(255)
   description   String?   @db.Text
   isDone        Boolean   @default(false) @map("is_done")
+  status        String    @default("planning") @db.VarChar(32) // planning / in_progress / done
   dueDate       DateTime? @db.Date @map("due_date")
   assigneeId    Int?      @map("assignee_id")
   assignee      User?     @relation("SubtaskAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)

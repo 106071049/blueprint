@@ -11,6 +11,14 @@ export async function PATCH(req, { params }) {
     data.isDone = !!body.done;
     data.completedAt = body.done ? new Date() : null;
   }
+  if (body.status !== undefined) {
+    const allowed = ['planning', 'in_progress', 'done'];
+    if (allowed.includes(body.status)) {
+      data.status = body.status;
+      if (body.status === 'done') { data.isDone = true; data.completedAt = new Date(); }
+      else { data.isDone = false; data.completedAt = null; }
+    }
+  }
   if (body.dueDate !== undefined) data.dueDate = parseDate(body.dueDate);
   if (body.sortOrder !== undefined) data.sortOrder = body.sortOrder;
   if (body.manualProgress !== undefined) {

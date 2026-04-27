@@ -57,6 +57,12 @@ export default function SubtasksEditor({ project, onAdd, onUpdate, onRemove }) {
   );
 }
 
+const STATUS_OPTIONS = [
+  { value: 'planning',    label: '規劃中', color: '#94a3b8' },
+  { value: 'in_progress', label: '進行中', color: '#f59e0b' },
+  { value: 'done',        label: '已完成', color: '#10b981' },
+];
+
 function SubtaskRow({ s, onUpdate, onRemove }) {
   const [title, setTitle] = useState(s.title);
   const savedProgress = s.manualProgress != null ? s.manualProgress : (s.done ? 100 : 0);
@@ -84,6 +90,9 @@ function SubtaskRow({ s, onUpdate, onRemove }) {
     setLocalProgress(v);
   };
 
+  const currentStatus = s.status || 'planning';
+  const statusMeta = STATUS_OPTIONS.find((o) => o.value === currentStatus) || STATUS_OPTIONS[0];
+
   return (
     <div className={`subtask-row ${s.done ? 'done' : ''}`} style={{ flexWrap: 'wrap', gap: '6px' }}>
       <input
@@ -92,6 +101,19 @@ function SubtaskRow({ s, onUpdate, onRemove }) {
         checked={s.done}
         onChange={(e) => onUpdate(s.id, { done: e.target.checked })}
       />
+
+      {/* Status dropdown */}
+      <select
+        className="form-input !py-0.5 !px-1.5 !text-[11px] shrink-0"
+        style={{ color: statusMeta.color, borderColor: statusMeta.color + '55', width: '68px' }}
+        value={currentStatus}
+        onChange={(e) => onUpdate(s.id, { status: e.target.value })}
+      >
+        {STATUS_OPTIONS.map((o) => (
+          <option key={o.value} value={o.value}>{o.label}</option>
+        ))}
+      </select>
+
       <input
         type="text"
         className="subtask-title flex-1 bg-transparent border-0 p-0 text-xs text-[var(--text)] focus:outline-none focus:ring-0"

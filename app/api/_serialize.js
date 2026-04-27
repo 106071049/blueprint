@@ -50,6 +50,7 @@ export function serializeSubtask(s) {
     title: s.title,
     description: s.description || '',
     done: s.isDone,
+    status: s.status || 'planning',
     dueDate: s.dueDate ? toIsoDate(s.dueDate) : '',
     manualProgress: s.manualProgress ?? null,
     createdAt: s.createdAt,
