@@ -23,6 +23,7 @@ export function serializeProject(p) {
     actualStart: p.actualStart ? toIsoDate(p.actualStart) : '',
     actualEnd: p.actualEnd ? toIsoDate(p.actualEnd) : '',
     manualProgress: p.manualProgress,
+    durationDays: p.durationDays,
     notes: p.notes || '',
     isCustom: p.isCustom,
     isArchived: p.isArchived,

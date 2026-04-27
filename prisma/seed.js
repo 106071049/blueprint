@@ -109,11 +109,11 @@ async function main() {
   console.log('\n--- Seeding default user (Louis) ---');
   const louis = await prisma.user.upsert({
     where: { email: 'IT@wauyuan.com' },
-    update: { displayName: 'Louis', title: '首席財務工程師', role: 'admin' },
+    update: { displayName: 'Louis', title: '財務工程師', role: 'admin' },
     create: {
       email: 'IT@wauyuan.com',
       displayName: 'Louis',
-      title: '首席財務工程師',  // 首席財務工程師
+      title: '財務工程師',  // 財務工程師
       role: 'admin',
     },
   });

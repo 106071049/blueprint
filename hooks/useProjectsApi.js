@@ -49,6 +49,12 @@ export function useProjectsApi() {
         method: 'PATCH', headers: json, body: JSON.stringify(patch),
       });
       setProjects((prev) => prev.map((p) => p.id === id ? updated : p));
+
+      // 若改的是排程相關欄位，後端會 cascade 後續項目，要重抑全部以反映
+      const scheduleKeys = ['durationDays', 'plannedStart', 'plannedEnd'];
+      if (scheduleKeys.some((k) => k in patch)) {
+        await refresh();
+      }
       flash();
     } catch (e) {
       setError('保存失敗：' + e.message);
@@ -147,11 +153,54 @@ export function useProjectsApi() {
     }
   }, [refresh]);
 
+  // === Settings + Schedule recompute ===
+  const [settings, setSettings] = useState({
+    'schedule.globalStartDate': '2026-04-27',
+    'schedule.defaultDurationDays': '20',
+  });
+
+  const refreshSettings = useCallback(async () => {
+    try {
+      const data = await req('/api/settings');
+      setSettings(data);
+    } catch (e) {
+      // silent fail; use defaults
+    }
+  }, []);
+
+  useEffect(() => { refreshSettings(); }, [refreshSettings]);
+
+  const updateSettings = useCallback(async (patch) => {
+    setSettings((prev) => ({ ...prev, ...patch }));
+    try {
+      await req('/api/settings', {
+        method: 'PUT', headers: json, body: JSON.stringify(patch),
+      });
+      flash();
+    } catch (e) {
+      setError('\u8a2d\u5b9a\u5132\u5b58\u5931\u6557\uff1a' + e.message);
+      refreshSettings();
+    }
+  }, [refreshSettings]);
+
+  const recomputeSchedule = useCallback(async (opts = {}) => {
+    try {
+      await req('/api/projects/recompute-schedule', {
+        method: 'POST', headers: json, body: JSON.stringify(opts),
+      });
+      await refresh();
+      flash();
+    } catch (e) {
+      setError('\u91cd\u65b0\u8a08\u7b97\u6392\u7a0b\u5931\u6557\uff1a' + e.message);
+    }
+  }, [refresh]);
+
   return {
     projects, loading, error, saveFlash,
     refresh, updateProject, createProject, deleteProject,
     addSubtask, updateSubtask, deleteSubtask,
     reorderProjects,
+    settings, updateSettings, recomputeSchedule,
     clearError: () => setError(null),
   };
 }

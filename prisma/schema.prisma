@@ -67,6 +67,7 @@ model Project {
   actualStart     DateTime? @db.Date @map("actual_start")
   actualEnd       DateTime? @db.Date @map("actual_end")
 
+  durationDays    Int?      @map("duration_days") // 工作天數，null = 使用全域預設
   manualProgress  Int?      @map("manual_progress") // 0-100; null = auto
   notes           String?   @db.Text
 
@@ -144,4 +145,14 @@ model StatusHistory {
 
   @@index([projectId, changedAt])
   @@map("status_history")
+}
+
+
+// 全域設定（key/value 表）
+model Setting {
+  key       String   @id @db.VarChar(64)
+  value     String   @db.Text
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("settings")
 }
