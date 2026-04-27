@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useProjectsApi } from '@/hooks/useProjectsApi';
 import StatsOverview from './StatsOverview';
 import DepartmentProgress from './DepartmentProgress';
@@ -82,9 +82,16 @@ export default function Dashboard() {
     }
   };
 
-  const lastUpdate = new Date().toLocaleString('zh-TW', {
-    year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit',
-  });
+  // 只在 client 端計算時間，避免 hydration mismatch
+  const [lastUpdate, setLastUpdate] = useState('');
+  useEffect(() => {
+    const tick = () => setLastUpdate(new Date().toLocaleString('zh-TW', {
+      year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit',
+    }));
+    tick();
+    const t = setInterval(tick, 60000);
+    return () => clearInterval(t);
+  }, []);
 
   return (
     <main className="min-h-screen">
@@ -100,7 +107,7 @@ export default function Dashboard() {
             <button className="btn" onClick={api.refresh} title="重新載入">↻</button>
             <div className="text-right text-xs text-[var(--text-muted)]">
               <div>最後更新</div>
-              <div className="text-[var(--text)] font-medium">{lastUpdate}</div>
+              <div className="text-[var(--text)] font-medium" suppressHydrationWarning>{lastUpdate || '—'}</div>
             </div>
           </div>
         </div>
