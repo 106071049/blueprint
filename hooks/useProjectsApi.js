@@ -155,6 +155,10 @@ export function useProjectsApi() {
       setPendingReorderIds(null);
       flash();
       refresh();
+      // 加入小視窗提示
+      if (typeof window !== 'undefined') {
+        window.alert('排序已儲存！並且已同步更新至資料庫中。');
+      }
     } catch (e) {
       setError('排序失敗：' + e.message);
       refresh();
