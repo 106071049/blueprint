@@ -21,6 +21,7 @@ export function useProjectsApi() {
   const [error, setError] = useState(null);
   const [saveFlash, setSaveFlash] = useState(false);
   const [pendingReorderIds, setPendingReorderIds] = useState(null);
+  const [isSavingOrder, setIsSavingOrder] = useState(false);
 
   const refresh = useCallback(async () => {
     try {
@@ -148,6 +149,7 @@ export function useProjectsApi() {
 
   const saveReorder = useCallback(async () => {
     if (!pendingReorderIds) return;
+    setIsSavingOrder(true);
     try {
       await req('/api/projects/reorder', {
         method: 'POST', headers: json, body: JSON.stringify({ ids: pendingReorderIds }),
@@ -162,6 +164,8 @@ export function useProjectsApi() {
     } catch (e) {
       setError('排序失敗：' + e.message);
       refresh();
+    } finally {
+      setIsSavingOrder(false);
     }
   }, [pendingReorderIds, refresh]);
 
@@ -216,7 +220,7 @@ export function useProjectsApi() {
     projects, loading, error, saveFlash,
     refresh, updateProject, createProject, deleteProject,
     addSubtask, updateSubtask, deleteSubtask,
-    reorderProjects, pendingReorderIds, saveReorder, cancelReorder,
+    reorderProjects, pendingReorderIds, saveReorder, cancelReorder, isSavingOrder,
     settings, updateSettings, recomputeSchedule,
     clearError: () => setError(null),
   };

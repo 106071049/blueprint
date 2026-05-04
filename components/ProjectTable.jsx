@@ -75,13 +75,19 @@ export default function ProjectTable({ projects, department, api }) {
             <div className="flex items-center gap-2">
               <button
                 onClick={api.saveReorder}
-                className="text-xs px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-500 shadow-sm transition-colors"
+                disabled={api.isSavingOrder}
+                className={`text-xs px-3 py-1.5 text-white rounded shadow-sm transition-colors ${
+                  api.isSavingOrder ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-500'
+                }`}
               >
-                儲存排序
+                {api.isSavingOrder ? '儲存中...' : '儲存排序'}
               </button>
               <button
                 onClick={api.cancelReorder}
-                className="text-xs px-3 py-1.5 bg-[var(--panel-2)] text-[var(--text)] border border-[var(--border)] rounded hover:bg-[var(--border)] transition-colors"
+                disabled={api.isSavingOrder}
+                className={`text-xs px-3 py-1.5 bg-[var(--panel-2)] text-[var(--text)] border border-[var(--border)] rounded transition-colors ${
+                  api.isSavingOrder ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[var(--border)]'
+                }`}
               >
                 取消
               </button>
