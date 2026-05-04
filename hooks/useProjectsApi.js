@@ -20,6 +20,7 @@ export function useProjectsApi() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [saveFlash, setSaveFlash] = useState(false);
+  const [pendingReorderIds, setPendingReorderIds] = useState(null);
 
   const refresh = useCallback(async () => {
     try {
@@ -133,8 +134,8 @@ export function useProjectsApi() {
     }
   }, [refresh]);
 
-  const reorderProjects = useCallback(async (orderedIds) => {
-    // 樂觀更新：依 orderedIds 重新排列 state
+  const reorderProjects = useCallback((orderedIds) => {
+    // 僅更新前端 state，並記錄有待儲存的排序
     setProjects((prev) => {
       const idx = new Map(orderedIds.map((id, i) => [id, i]));
       // 對有在 orderedIds 的項目依新順序；其他項目保持原位 (在末尾)
@@ -142,15 +143,26 @@ export function useProjectsApi() {
       const rest = prev.filter((p) => !idx.has(p.id));
       return [...sortable, ...rest];
     });
+    setPendingReorderIds(orderedIds);
+  }, []);
+
+  const saveReorder = useCallback(async () => {
+    if (!pendingReorderIds) return;
     try {
       await req('/api/projects/reorder', {
-        method: 'POST', headers: json, body: JSON.stringify({ ids: orderedIds }),
+        method: 'POST', headers: json, body: JSON.stringify({ ids: pendingReorderIds }),
       });
+      setPendingReorderIds(null);
       flash();
     } catch (e) {
-      setError('\u6392\u5e8f\u5931\u6557\uff1a' + e.message);
+      setError('排序失敗：' + e.message);
       refresh();
     }
+  }, [pendingReorderIds, refresh]);
+
+  const cancelReorder = useCallback(() => {
+    setPendingReorderIds(null);
+    refresh(); // 重新向後端要資料，放棄目前的排序變更
   }, [refresh]);
 
   // === Settings + Schedule recompute ===
@@ -199,7 +211,7 @@ export function useProjectsApi() {
     projects, loading, error, saveFlash,
     refresh, updateProject, createProject, deleteProject,
     addSubtask, updateSubtask, deleteSubtask,
-    reorderProjects,
+    reorderProjects, pendingReorderIds, saveReorder, cancelReorder,
     settings, updateSettings, recomputeSchedule,
     clearError: () => setError(null),
   };

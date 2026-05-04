@@ -69,7 +69,25 @@ export default function ProjectTable({ projects, department, api }) {
   return (
     <section className="rounded-xl border border-[var(--border)] bg-[var(--panel)] overflow-hidden">
       <div className="px-5 py-3 border-b border-[var(--border)] flex items-center justify-between">
-        <div className="text-sm font-semibold">{department === '全部' ? '全部項目' : `${department} 項目`}</div>
+        <div className="flex items-center gap-4">
+          <div className="text-sm font-semibold">{department === '全部' ? '全部項目' : `${department} 項目`}</div>
+          {api.pendingReorderIds && (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={api.saveReorder}
+                className="text-xs px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-500 shadow-sm transition-colors"
+              >
+                儲存排序
+              </button>
+              <button
+                onClick={api.cancelReorder}
+                className="text-xs px-3 py-1.5 bg-[var(--panel-2)] text-[var(--text)] border border-[var(--border)] rounded hover:bg-[var(--border)] transition-colors"
+              >
+                取消
+              </button>
+            </div>
+          )}
+        </div>
         <div className="text-xs text-[var(--text-muted)]">拖曳左側 ⋮⋮ 調整順序 · 點擊列展開詳情</div>
       </div>
       <div className="overflow-x-auto scrollbar-thin">
