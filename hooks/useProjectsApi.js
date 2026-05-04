@@ -154,6 +154,7 @@ export function useProjectsApi() {
       });
       setPendingReorderIds(null);
       flash();
+      refresh();
     } catch (e) {
       setError('排序失敗：' + e.message);
       refresh();

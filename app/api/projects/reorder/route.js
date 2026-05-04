@@ -19,9 +19,16 @@ export async function POST(request) {
   });
   const existingSorts = existing.map((p) => p.sortOrder).sort((a, b) => a - b);
 
+  // 確保排序權重不會有重複值（若原本都是 0，就遞增拉開差距）
+  for (let i = 1; i < existingSorts.length; i++) {
+    if (existingSorts[i] <= existingSorts[i - 1]) {
+      existingSorts[i] = existingSorts[i - 1] + 10;
+    }
+  }
+
   // 把 existing 的 sortOrder 重新分配給新順序
   const updates = numericIds.map((id, idx) => {
-    const newSort = existingSorts[idx] ?? (idx + 1);
+    const newSort = existingSorts[idx] ?? (idx * 10);
     return prisma.project.update({
       where: { id },
       data: { sortOrder: newSort },
