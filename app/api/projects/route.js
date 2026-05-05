@@ -32,11 +32,18 @@ export async function POST(request) {
   const body = await request.json();
   let departmentId = body.departmentId;
   if (!departmentId && body.department) {
-    const dept = await prisma.department.upsert({
-      where: { code: slugify(body.department) },
-      update: {},
-      create: { code: slugify(body.department), name: body.department, sortOrder: 99 },
+    // First, try to find an existing department by name
+    let dept = await prisma.department.findFirst({
+      where: { name: body.department }
     });
+    
+    if (!dept) {
+      dept = await prisma.department.upsert({
+        where: { code: slugify(body.department) },
+        update: {},
+        create: { code: slugify(body.department), name: body.department, sortOrder: 99 },
+      });
+    }
     departmentId = dept.id;
   }
   if (!body.name || !departmentId) {
