@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { serializeProject, statusFromZh, parseDate } from '../_serialize';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 const PROJECT_INCLUDE = {
   department: true,
   subtasks: { orderBy: { sortOrder: 'asc' } },

@@ -5,7 +5,11 @@ import { useCallback, useEffect, useState } from 'react';
 const json = { 'Content-Type': 'application/json' };
 
 async function req(url, options = {}) {
-  const res = await fetch(url, options);
+  const res = await fetch(url, {
+    ...options,
+    cache: 'no-store',
+    headers: { ...options.headers, 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' },
+  });
   if (!res.ok) {
     let msg = `HTTP ${res.status}`;
     try { const e = await res.json(); msg = e.error || msg; } catch {}
@@ -37,7 +41,9 @@ export function useProjectsApi() {
   const refresh = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await req('/api/projects');
+      // Add timestamp to completely bypass any browser/Next.js caching
+      const t = Date.now();
+      const data = await req(`/api/projects?_t=${t}`);
       setProjects(data);
       setError(null);
     } catch (e) {
