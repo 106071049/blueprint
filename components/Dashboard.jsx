@@ -142,6 +142,43 @@ export default function Dashboard() {
         AI 中心 開發藍圖 · Powered by Next.js + Prisma + MySQL · Deployed on Vercel
       </footer>
       <AddProjectModal open={modalOpen} onClose={() => setModalOpen(false)} onSubmit={handleAddProject} departments={allDepartments} />
+
+      {/* Tech-style Toast Notification */}
+      {api.toast && (
+        <div className="fixed bottom-6 right-6 z-50 toast-slide-up">
+          <div className="relative overflow-hidden rounded-lg border border-emerald-500/50 bg-[#0f172a]/95 backdrop-blur-md p-4 pr-12 shadow-[0_0_25px_rgba(16,185,129,0.25)] w-[340px] max-w-[calc(100vw-3rem)]">
+            {/* Top glowing line */}
+            <div className="absolute top-0 left-0 h-[2px] w-full bg-emerald-400 shadow-[0_0_12px_#34d399] toast-pulse"></div>
+            
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0 mt-0.5">
+                <div className="relative flex h-6 w-6 items-center justify-center rounded-full border border-emerald-400/50 bg-emerald-400/10">
+                   <div className="absolute h-2 w-2 rounded-full bg-emerald-400 animate-ping"></div>
+                   <svg className="relative h-4 w-4 text-emerald-400" viewBox="0 0 20 20" fill="currentColor">
+                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                   </svg>
+                </div>
+              </div>
+              <div className="flex-1">
+                <h3 className="text-[12px] font-bold text-emerald-400 tracking-wider font-mono uppercase mb-1">SYSTEM_UPDATE // SUCCESS</h3>
+                <p className="text-sm text-slate-300 leading-snug">{api.toast.message}</p>
+              </div>
+              <button 
+                onClick={api.hideToast} 
+                className="absolute top-4 right-4 text-slate-500 hover:text-emerald-300 transition-colors"
+                title="關閉"
+              >
+                ✕
+              </button>
+            </div>
+            
+            {/* Progress bar */}
+            <div className="absolute bottom-0 left-0 h-1 bg-emerald-900/50 w-full">
+              <div className="h-full bg-emerald-400 toast-progress shadow-[0_0_8px_#34d399]" style={{ '--duration': `${api.toast.duration}ms` }}></div>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

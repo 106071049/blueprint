@@ -315,3 +315,27 @@ tr.row-dragging { opacity: 0.4; background: #1a2352 !important; }
     padding: 10px 12px;
   }
 }
+
+/* ===== Tech Toast Notifications ===== */
+@keyframes slideUpFade {
+  0% { transform: translateY(20px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+@keyframes pulseFast {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+@keyframes progressWidth {
+  0% { transform: scaleX(0); }
+  100% { transform: scaleX(1); }
+}
+.toast-slide-up {
+  animation: slideUpFade 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.toast-pulse {
+  animation: pulseFast 1.5s ease-in-out infinite;
+}
+.toast-progress {
+  animation: progressWidth var(--duration, 4s) linear forwards;
+  transform-origin: left;
+}

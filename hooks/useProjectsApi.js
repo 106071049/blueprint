@@ -22,6 +22,17 @@ export function useProjectsApi() {
   const [saveFlash, setSaveFlash] = useState(false);
   const [pendingReorderIds, setPendingReorderIds] = useState(null);
   const [isSavingOrder, setIsSavingOrder] = useState(false);
+  const [toast, setToast] = useState(null);
+
+  const showToast = useCallback((msg, duration = 4000) => {
+    const id = Date.now();
+    setToast({ id, message: msg, duration });
+    setTimeout(() => {
+      setToast((prev) => (prev?.id === id ? null : prev));
+    }, duration);
+  }, []);
+
+  const hideToast = useCallback(() => setToast(null), []);
 
   const refresh = useCallback(async () => {
     try {
@@ -157,10 +168,7 @@ export function useProjectsApi() {
       setPendingReorderIds(null);
       flash();
       refresh();
-      // 加入小視窗提示
-      if (typeof window !== 'undefined') {
-        window.alert('排序已儲存！並且已同步更新至資料庫中。');
-      }
+      showToast('排序已儲存！並且已同步更新至資料庫中。');
     } catch (e) {
       setError('排序失敗：' + e.message);
       refresh();
@@ -222,6 +230,7 @@ export function useProjectsApi() {
     addSubtask, updateSubtask, deleteSubtask,
     reorderProjects, pendingReorderIds, saveReorder, cancelReorder, isSavingOrder,
     settings, updateSettings, recomputeSchedule,
+    toast, hideToast,
     clearError: () => setError(null),
   };
 }
