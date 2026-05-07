@@ -123,15 +123,33 @@ export function useProjectsApi() {
   }, []);
 
   const updateSubtask = useCallback(async (projectId, subtaskId, patch) => {
-    setProjects((prev) => prev.map((p) =>
-      p.id === projectId
-        ? { ...p, subtasks: p.subtasks.map((s) => s.id === subtaskId ? { ...s, ...patch } : s) }
-        : p
-    ));
+    // Optimistic update: also derive `done` from status so progress bar reacts immediately
+    setProjects((prev) => prev.map((p) => {
+      if (p.id !== projectId) return p;
+      return {
+        ...p,
+        subtasks: p.subtasks.map((s) => {
+          if (s.id !== subtaskId) return s;
+          const next = { ...s, ...patch };
+          if (patch.status !== undefined) {
+            next.done = patch.status === 'done' || patch.status === 'done_v1';
+          }
+          return next;
+        }),
+      };
+    }));
     try {
-      await req(`/api/subtasks/${subtaskId}`, {
+      const updated = await req(`/api/subtasks/${subtaskId}`, {
         method: 'PATCH', headers: json, body: JSON.stringify(patch),
       });
+      // Sync state with actual server response so done/status/manualProgress are always accurate
+      setProjects((prev) => prev.map((p) => {
+        if (p.id !== projectId) return p;
+        return {
+          ...p,
+          subtasks: p.subtasks.map((s) => s.id === subtaskId ? { ...s, ...updated } : s),
+        };
+      }));
       flash();
     } catch (e) {
       setError('更新細項失敗：' + e.message);
