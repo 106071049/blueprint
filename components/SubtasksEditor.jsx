@@ -66,16 +66,21 @@ const STATUS_OPTIONS = [
 
 function SubtaskRow({ s, onUpdate, onRemove }) {
   const [title, setTitle] = useState(s.title);
-  const savedProgress = s.manualProgress != null ? s.manualProgress : (s.done ? 100 : 0);
+  const deriveProgress = (sub) => {
+    if (sub.manualProgress != null) return sub.manualProgress;
+    if (sub.done || sub.status === 'done' || sub.status === 'done_v1') return 100;
+    if (sub.status === 'in_progress') return 50;
+    return 0;
+  };
+  const savedProgress = deriveProgress(s);
   const [localProgress, setLocalProgress] = useState(savedProgress);
   const [saved, setSaved] = useState(false);
   const saveTimer = useRef(null);
 
   useEffect(() => { setTitle(s.title); }, [s.title]);
   useEffect(() => {
-    const v = s.manualProgress != null ? s.manualProgress : (s.done ? 100 : 0);
-    setLocalProgress(v);
-  }, [s.manualProgress, s.done]);
+    setLocalProgress(deriveProgress(s));
+  }, [s.manualProgress, s.done, s.status]);
 
   const isDirty = localProgress !== savedProgress;
 
