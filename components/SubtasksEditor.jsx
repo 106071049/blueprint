@@ -10,7 +10,11 @@ export default function SubtasksEditor({ project, onAdd, onUpdate, onRemove }) {
 
   const avgProgress = subTotal > 0
     ? Math.round(subs.reduce((acc, s) => {
-        const v = s.manualProgress != null ? s.manualProgress : (s.done ? 100 : 0);
+        let v;
+        if (s.manualProgress != null) v = s.manualProgress;
+        else if (s.done || s.status === 'done' || s.status === 'done_v1') v = 100;
+        else if (s.status === 'in_progress') v = 50;
+        else v = 0;
         return acc + v;
       }, 0) / subTotal)
     : 0;
@@ -161,6 +165,7 @@ function SubtaskRow({ s, onUpdate, onRemove }) {
 
       {/* Confirm button */}
       <button
+        type="button"
         className="btn btn-primary !py-0.5 !px-2 !text-[11px] shrink-0"
         style={{
           opacity: isDirty ? 1 : 0.45,
@@ -175,7 +180,7 @@ function SubtaskRow({ s, onUpdate, onRemove }) {
         {saved ? '✓ 已存' : '確定'}
       </button>
 
-      <button className="btn-danger btn !py-0.5 !px-1.5 !text-[11px] shrink-0" title="移除" onClick={() => onRemove(s.id)}>✕</button>
+      <button type="button" className="btn-danger btn !py-0.5 !px-1.5 !text-[11px] shrink-0" title="移除" onClick={() => onRemove(s.id)}>✕</button>
     </div>
   );
 }
