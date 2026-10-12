@@ -57,6 +57,8 @@ export default function Dashboard() {
         planning: dp.filter((p) => p.status === '規劃中').length,
       };
       s.completionRate = s.total > 0 ? Math.round((s.done / s.total) * 100) : 0;
+      // 部門平均進度：各項目進度（含手動調整）的平均
+      s.avgProgress = s.total > 0 ? Math.round(dp.reduce((acc, p) => acc + (p.progress || 0), 0) / s.total) : 0;
       result[dept] = s;
     });
     return result;
