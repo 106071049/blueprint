@@ -189,13 +189,8 @@ function SortableRow({ p, idx, isOpen, onToggle, onDelete, api }) {
             <option value="已完成">已完成</option>
           </select>
         </td>
-        <td className="px-4 py-3 cursor-pointer" onClick={onToggle}>
-          <div className="flex items-center gap-2">
-            <div className="h-1.5 w-20 rounded-full bg-slate-700/40 overflow-hidden">
-              <div className={`h-full ${progressColor(p.status)}`} style={{ width: `${p.progress}%` }} />
-            </div>
-            <span className="text-xs text-[var(--text-muted)] tabular-nums w-10">{p.progress}%</span>
-          </div>
+        <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+          <ProgressCell p={p} onSave={(manualProgress) => api.updateProject(p.id, { manualProgress })} />
         </td>
         <td className="px-4 py-3 text-[var(--text-muted)] text-xs hide-below-820 cursor-pointer" onClick={onToggle}>
           {subTotal > 0 ? (<span><span className="text-emerald-300">{subDone}</span>/{subTotal}</span>) : '—'}
@@ -246,6 +241,72 @@ function SortableRow({ p, idx, isOpen, onToggle, onDelete, api }) {
         </tr>
       )}
     </Fragment>
+  );
+}
+
+// 點擊進度條即可手動調整百分比；「自動」會清除手動值，改回依細項 / 狀態計算
+function ProgressCell({ p, onSave }) {
+  const [editing, setEditing] = useState(false);
+  const [value, setValue] = useState(p.progress);
+  const isManual = p.manualProgress != null;
+
+  const open = () => { setValue(p.progress); setEditing(true); };
+  const clamp = (v) => Math.min(100, Math.max(0, Math.round(Number(v) || 0)));
+  const commit = () => {
+    setEditing(false);
+    if (value !== p.progress || !isManual) onSave(value);
+  };
+  const resetAuto = () => { setEditing(false); onSave(null); };
+  const onKeyDown = (e) => {
+    if (e.key === 'Enter') commit();
+    if (e.key === 'Escape') setEditing(false);
+  };
+
+  if (!editing) {
+    return (
+      <button
+        type="button"
+        className="flex items-center gap-2 cursor-pointer group"
+        title={isManual ? '手動進度（點擊調整）' : '自動計算（點擊手動調整）'}
+        onClick={open}
+      >
+        <div className="h-1.5 w-20 rounded-full bg-slate-700/40 overflow-hidden group-hover:ring-1 group-hover:ring-blue-400/60">
+          <div className={`h-full ${progressColor(p.status)}`} style={{ width: `${p.progress}%` }} />
+        </div>
+        <span className="text-xs text-[var(--text-muted)] tabular-nums w-10 text-left group-hover:text-[var(--text)]">
+          {p.progress}%{isManual && <span className="ml-0.5 text-blue-400">✎</span>}
+        </span>
+      </button>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-1.5 whitespace-nowrap" onKeyDown={onKeyDown}>
+      <input
+        type="range"
+        min="0"
+        max="100"
+        step="5"
+        className="w-20 accent-blue-500 cursor-pointer"
+        value={value}
+        onChange={(e) => setValue(clamp(e.target.value))}
+      />
+      <input
+        type="number"
+        min="0"
+        max="100"
+        autoFocus
+        className="form-input !py-0.5 !px-1 !text-[11px] tabular-nums"
+        style={{ width: '46px', textAlign: 'center' }}
+        value={value}
+        onChange={(e) => setValue(clamp(e.target.value))}
+      />
+      <button type="button" className="btn btn-primary !py-0.5 !px-2 !text-[11px]" onClick={commit}>確定</button>
+      {isManual && (
+        <button type="button" className="btn !py-0.5 !px-2 !text-[11px]" title="清除手動值，改回自動計算" onClick={resetAuto}>自動</button>
+      )}
+      <button type="button" className="btn !py-0.5 !px-2 !text-[11px]" onClick={() => setEditing(false)}>✕</button>
+    </div>
   );
 }
 

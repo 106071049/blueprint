@@ -30,7 +30,9 @@ export async function PATCH(req, { params }) {
   if (body.notes !== undefined) data.notes = body.notes;
   if (body.plannedStart !== undefined) data.plannedStart = parseDate(body.plannedStart);
   if (body.plannedEnd !== undefined) data.plannedEnd = parseDate(body.plannedEnd);
-  if (body.manualProgress !== undefined) data.manualProgress = body.manualProgress;
+  if (body.manualProgress !== undefined) {
+    data.manualProgress = body.manualProgress === null ? null : Math.min(100, Math.max(0, Math.round(Number(body.manualProgress) || 0)));
+  }
   if (body.durationDays !== undefined) data.durationDays = body.durationDays === null ? null : Number(body.durationDays);
   if (body.isArchived !== undefined) data.isArchived = body.isArchived;
 

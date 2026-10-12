@@ -62,7 +62,13 @@ export function useProjectsApi() {
 
   // === Projects ===
   const updateProject = useCallback(async (id, patch) => {
-    setProjects((prev) => prev.map((p) => p.id === id ? { ...p, ...patch } : p));
+    setProjects((prev) => prev.map((p) => {
+      if (p.id !== id) return p;
+      const next = { ...p, ...patch };
+      // 手動進度立即反映在進度條；清除（null）則等後端重新計算
+      if (patch.manualProgress != null) next.progress = patch.manualProgress;
+      return next;
+    }));
     try {
       const updated = await req(`/api/projects/${id}`, {
         method: 'PATCH', headers: json, body: JSON.stringify(patch),
